@@ -24,7 +24,7 @@ class LoggedWebViewClient() : WebViewClient() {
         ReplaceWith("super.shouldOverrideUrlLoading(view, url)", "android.webkit.WebViewClient")
     )
     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-        Log.d(TAG, "shouldOverrideUrlLoading")
+        Log.d(TAG, "shouldOverrideUrlLoading: $url")
         return super.shouldOverrideUrlLoading(view, url)
     }
 

@@ -7,6 +7,7 @@ import android.util.Log
 import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
+import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -116,21 +117,25 @@ fun AndroidTestWebView(paddingValues: PaddingValues) {
         AndroidView(
             factory = { context ->
                 WebView(context).apply {
+                    // width, height 값 고정: 애니메이션 시 해당 사이즈를 기준으로 계산하도록
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT
+                    )
                     isFocusable = true
                     isFocusableInTouchMode = true
+
                     webViewClient = LoggedWebViewClient()
                     webChromeClient = WebChromeClient()
-
                     // settings
                     settings.javaScriptEnabled = true
-                    settings.setSupportMultipleWindows(false)
+                    settings.setSupportMultipleWindows(true)
                     settings.javaScriptCanOpenWindowsAutomatically = true
                     settings.domStorageEnabled = true
                     settings.allowContentAccess = false
                     settings.loadWithOverviewMode = true
                     settings.useWideViewPort = true
                     settings.builtInZoomControls = true
-                    settings.layoutAlgorithm = WebSettings.LayoutAlgorithm.TEXT_AUTOSIZING
                     settings.setNeedInitialFocus(false)
                     settings.databaseEnabled = true
                     settings.setGeolocationEnabled(true)
@@ -138,9 +143,6 @@ fun AndroidTestWebView(paddingValues: PaddingValues) {
 
                     settings.cacheMode = WebSettings.LOAD_NO_CACHE
                     settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                    // webChromeClient not null
-//                webChromeClient?.onCloseWindow(this)
-//                webChromeClient?.
                 }
             },
             update = { webView ->

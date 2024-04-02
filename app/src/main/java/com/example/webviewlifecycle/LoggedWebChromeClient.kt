@@ -7,24 +7,22 @@ import android.util.Log
 import android.view.View
 import android.webkit.ConsoleMessage
 import android.webkit.GeolocationPermissions
-import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.PermissionRequest
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
-import android.webkit.WebStorage
 import android.webkit.WebView
 
 private const val TAG = "LoggedWebChromeClient"
 
 class LoggedWebChromeClient : WebChromeClient() {
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
-        Log.d(TAG, "onProgressChanged: ")
+        Log.d(TAG, "onProgressChanged: $newProgress")
         super.onProgressChanged(view, newProgress)
     }
 
     override fun onReceivedTitle(view: WebView?, title: String?) {
-        Log.d(TAG, "onReceivedTitle: ")
+        Log.d(TAG, "onReceivedTitle: $title")
         super.onReceivedTitle(view, title)
     }
 
@@ -34,7 +32,7 @@ class LoggedWebChromeClient : WebChromeClient() {
     }
 
     override fun onReceivedTouchIconUrl(view: WebView?, url: String?, precomposed: Boolean) {
-        Log.d(TAG, "onReceivedTouchIconUrl: ")
+        Log.d(TAG, "onReceivedTouchIconUrl: $url, $precomposed")
         super.onReceivedTouchIconUrl(view, url, precomposed)
     }
 
@@ -44,7 +42,7 @@ class LoggedWebChromeClient : WebChromeClient() {
     }
 
     override fun onShowCustomView(view: View?, requestedOrientation: Int, callback: CustomViewCallback?) {
-        Log.d(TAG, "onShowCustomView: ")
+        Log.d(TAG, "onShowCustomView: $requestedOrientation")
         super.onShowCustomView(view, requestedOrientation, callback)
     }
 
@@ -59,7 +57,7 @@ class LoggedWebChromeClient : WebChromeClient() {
         isUserGesture: Boolean,
         resultMsg: Message?,
     ): Boolean {
-        Log.d(TAG, "onCreateWindow: ")
+        Log.d(TAG, "onCreateWindow: $resultMsg")
         return super.onCreateWindow(view, isDialog, isUserGesture, resultMsg)
     }
 
@@ -74,24 +72,8 @@ class LoggedWebChromeClient : WebChromeClient() {
     }
 
     override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
-        Log.d(TAG, "onJsAlert: ")
+        Log.d(TAG, "onJsAlert: url: $url, msg: $message, result: $result")
         return super.onJsAlert(view, url, message, result)
-    }
-
-    override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
-        Log.d(TAG, "onJsConfirm: ")
-        return super.onJsConfirm(view, url, message, result)
-    }
-
-    override fun onJsPrompt(
-        view: WebView?,
-        url: String?,
-        message: String?,
-        defaultValue: String?,
-        result: JsPromptResult?,
-    ): Boolean {
-        Log.d(TAG, "onJsPrompt: ")
-        return super.onJsPrompt(view, url, message, defaultValue, result)
     }
 
     override fun onJsBeforeUnload(
@@ -100,34 +82,15 @@ class LoggedWebChromeClient : WebChromeClient() {
         message: String?,
         result: JsResult?,
     ): Boolean {
-        Log.d(TAG, "onJsBeforeUnload: ")
+        Log.d(TAG, "onJsBeforeUnload: url: $url, msg: $message, res: $result")
         return super.onJsBeforeUnload(view, url, message, result)
-    }
-
-    override fun onExceededDatabaseQuota(
-        url: String?,
-        databaseIdentifier: String?,
-        quota: Long,
-        estimatedDatabaseSize: Long,
-        totalQuota: Long,
-        quotaUpdater: WebStorage.QuotaUpdater?,
-    ) {
-        Log.d(TAG, "onExceededDatabaseQuota: ")
-        super.onExceededDatabaseQuota(
-            url,
-            databaseIdentifier,
-            quota,
-            estimatedDatabaseSize,
-            totalQuota,
-            quotaUpdater
-        )
     }
 
     override fun onGeolocationPermissionsShowPrompt(
         origin: String?,
         callback: GeolocationPermissions.Callback?,
     ) {
-        Log.d(TAG, "onGeolocationPermissionsShowPrompt: ")
+        Log.d(TAG, "onGeolocationPermissionsShowPrompt: $origin")
         super.onGeolocationPermissionsShowPrompt(origin, callback)
     }
 
@@ -137,12 +100,12 @@ class LoggedWebChromeClient : WebChromeClient() {
     }
 
     override fun onPermissionRequest(request: PermissionRequest?) {
-        Log.d(TAG, "onPermissionRequest: ")
+        Log.d(TAG, "onPermissionRequest: $request")
         super.onPermissionRequest(request)
     }
 
     override fun onPermissionRequestCanceled(request: PermissionRequest?) {
-        Log.d(TAG, "onPermissionRequestCanceled: ")
+        Log.d(TAG, "onPermissionRequestCanceled: $request")
         super.onPermissionRequestCanceled(request)
     }
 
@@ -152,12 +115,12 @@ class LoggedWebChromeClient : WebChromeClient() {
     }
 
     override fun onConsoleMessage(message: String?, lineNumber: Int, sourceID: String?) {
-        Log.d(TAG, "onConsoleMessage: ")
+        Log.d(TAG, "onConsoleMessage: $message, $lineNumber, $sourceID")
         super.onConsoleMessage(message, lineNumber, sourceID)
     }
 
     override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-        Log.d(TAG, "onConsoleMessage: ")
+        Log.d(TAG, "onConsoleMessage: $consoleMessage")
         return super.onConsoleMessage(consoleMessage)
     }
 
@@ -181,7 +144,7 @@ class LoggedWebChromeClient : WebChromeClient() {
         filePathCallback: ValueCallback<Array<Uri>>?,
         fileChooserParams: FileChooserParams?,
     ): Boolean {
-        Log.d(TAG, "onShowFileChooser: ")
+        Log.d(TAG, "onShowFileChooser: $filePathCallback, $fileChooserParams")
         return super.onShowFileChooser(webView, filePathCallback, fileChooserParams)
     }
 }

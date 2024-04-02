@@ -2,14 +2,16 @@
 
 package com.example.webviewlifecycle
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
-import android.webkit.WebChromeClient
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.LinearLayout
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,11 +45,14 @@ import kotlinx.coroutines.launch
 private const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
+
+    val mainActivityViewModel by viewModels<MainActivityViewModel>()
+
+    lateinit var webview: WebView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             WebviewLifecycleTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     Scaffold(
                         bottomBar = { WebviewBottomBar() },
@@ -58,6 +63,11 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    override fun onBackPressed() {
+
+        super.onBackPressed()
     }
 }
 
@@ -83,7 +93,9 @@ fun BottomBarForwardButton() {
 
 @Composable
 fun BottomBarBackButton() {
-    IconButton(onClick = { }) {
+    IconButton(onClick = {
+
+    }) {
 
     }
 }
@@ -112,46 +124,62 @@ fun WebviewAddressBar() {
 
 @Composable
 fun AndroidTestWebView(paddingValues: PaddingValues) {
-    Column {
-        LinearDeterminateIndicator()
-        AndroidView(
-            factory = { context ->
-                WebView(context).apply {
-                    // width, height 값 고정: 애니메이션 시 해당 사이즈를 기준으로 계산하도록
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT
-                    )
-                    isFocusable = true
-                    isFocusableInTouchMode = true
 
-                    webViewClient = LoggedWebViewClient()
-                    webChromeClient = WebChromeClient()
-                    // settings
-                    settings.javaScriptEnabled = true
-                    settings.setSupportMultipleWindows(true)
-                    settings.javaScriptCanOpenWindowsAutomatically = true
-                    settings.domStorageEnabled = true
-                    settings.allowContentAccess = false
-                    settings.loadWithOverviewMode = true
-                    settings.useWideViewPort = true
-                    settings.builtInZoomControls = true
-                    settings.setNeedInitialFocus(false)
-                    settings.databaseEnabled = true
-                    settings.setGeolocationEnabled(true)
-                    settings.safeBrowsingEnabled = false
-
-                    settings.cacheMode = WebSettings.LOAD_NO_CACHE
-                    settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
-                }
-            },
-            update = { webView ->
-                webView.loadUrl("https://www.daum.net/")
-                Log.d(TAG, webView.progress.toString())
-            }
-        )
-
+//    BackOnPressed()
+    var backEnabled by remember { mutableStateOf(false) }
+    var webView: WebView? = null
+    BackHandler(enabled = backEnabled) {
+        webView?.goBack()
     }
+
+    LinearDeterminateIndicator()
+    AndroidView(
+        factory = { context ->
+            WebView(context).apply {
+                // width, height 값 고정: 애니메이션 시 해당 사이즈를 기준으로 계산하도록
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT
+                )
+                isFocusable = true
+                isFocusableInTouchMode = true
+
+                webViewClient = object : LoggedWebViewClient() {
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                        backEnabled = view?.canGoBack() == true
+                        Log.d(TAG, "onPageStarted: $backEnabled")
+                        super.onPageStarted(view, url, favicon)
+                    }
+                }
+                webChromeClient = LoggedWebChromeClient()
+
+                // settings
+                settings.javaScriptEnabled = true
+                settings.setSupportMultipleWindows(true)
+                settings.javaScriptCanOpenWindowsAutomatically = true
+                settings.domStorageEnabled = true
+                settings.allowContentAccess = false
+                settings.loadWithOverviewMode = true
+                settings.useWideViewPort = true
+                settings.builtInZoomControls = true
+                settings.setNeedInitialFocus(false)
+                settings.databaseEnabled = true
+                settings.setGeolocationEnabled(true)
+                settings.safeBrowsingEnabled = false
+                settings.cacheMode = WebSettings.LOAD_NO_CACHE
+                settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+
+                loadUrl("https://www.daum.net/")
+                webView = this
+
+            }
+        },
+        update = { WebView ->
+            webView = WebView
+//                Log.d(TAG, webView.progress.toString())
+        }
+    )
+
 }
 
 @Composable

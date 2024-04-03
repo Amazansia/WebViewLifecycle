@@ -9,8 +9,8 @@ import com.example.webviewlifecycle.databinding.MainActivityBinding
 private const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
-    lateinit var binding: MainActivityBinding
-    val viewModel by viewModels<MainActivityViewModel>()
+    private lateinit var binding: MainActivityBinding
+    private val viewModel by viewModels<MainActivityViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater).also {
@@ -81,7 +81,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onBackPressed() {
         if (binding.webview.canGoBack()) {
-            viewModel.uiAction.invoke(WebViewUiAction.HistoryBack)
+            viewModel.uiAction(WebViewUiAction.HistoryBack)
             return
         }
         super.onBackPressed()

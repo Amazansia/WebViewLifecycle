@@ -1,11 +1,13 @@
 package com.example.webviewlifecycle
 
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
@@ -15,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -32,12 +36,9 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun WebviewTopBar(viewModel: MainActivityViewModel) {
     TopAppBar(
-        navigationIcon = { TopBarNaviIcon() },
-        title = { WebviewAddressBar(viewModel) },
-        actions = {
-            // 카카오톡으로 공유
-            // 둥둥이로 변환
-        }
+        modifier = Modifier.padding(10.dp),
+        navigationIcon = { Icon(Icons.Default.Close, "", modifier = Modifier.padding(10.dp)) },
+        title = { WebviewAddressBar(viewModel) }
     )
 }
 
@@ -51,6 +52,13 @@ fun WebviewAddressBar(viewModel: MainActivityViewModel) {
     var url by remember { mutableStateOf("") }
 
     TextField(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(10.dp),
+        shape = RoundedCornerShape(8.dp),
+        colors = TextFieldDefaults.colors(
+            unfocusedIndicatorColor = Color.Transparent
+        ),
         value = url,
         onValueChange = { url = it },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
@@ -65,9 +73,7 @@ fun WebviewAddressBar(viewModel: MainActivityViewModel) {
 
 @Composable
 fun LinearDeterminateIndicator(viewModel: MainActivityViewModel) {
-
     val progress = viewModel.progress.observeAsState().value ?: 0
-    Log.e("Linear", "LinearDeterminateIndicator: $progress")
     if (progress != 100) {
         LinearProgressIndicator(
             progress = progress.toFloat() / 100,

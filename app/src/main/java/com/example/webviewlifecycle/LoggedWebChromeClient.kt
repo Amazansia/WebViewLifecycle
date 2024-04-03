@@ -15,9 +15,9 @@ import android.webkit.WebView
 
 private const val TAG = "LoggedWebChromeClient"
 
-class LoggedWebChromeClient : WebChromeClient() {
+class LoggedWebChromeClient(val viewModel: MainActivityViewModel) : WebChromeClient() {
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
-        Log.d(TAG, "onProgressChanged: $newProgress")
+        viewModel.progressChanged.invoke(newProgress)
         super.onProgressChanged(view, newProgress)
     }
 

@@ -14,6 +14,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = MainActivityBinding.inflate(layoutInflater).also {
+
+            it.progressBar.setContent {
+                LinearDeterminateIndicator(viewModel)
+            }
             it.topBar.setContent {
                 WebviewTopBar(viewModel)
             }
@@ -46,6 +50,9 @@ class MainActivity : ComponentActivity() {
             url.observe(this@MainActivity) {
                 binding.webview.loadUrl(it)
             }
+            progress.observe(this@MainActivity) {
+
+            }
         }
     }
 
@@ -56,7 +63,7 @@ class MainActivity : ComponentActivity() {
                 isFocusableInTouchMode = true
 
                 webViewClient = LoggedWebViewClient()
-                webChromeClient = LoggedWebChromeClient()
+                webChromeClient = LoggedWebChromeClient(viewModel)
 
                 // settings
                 settings.javaScriptEnabled = true
@@ -81,7 +88,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onBackPressed() {
         if (binding.webview.canGoBack()) {
-            viewModel.uiAction(WebViewUiAction.HistoryBack)
+            viewModel.uiAction.invoke(WebViewUiAction.HistoryBack)
             return
         }
         super.onBackPressed()

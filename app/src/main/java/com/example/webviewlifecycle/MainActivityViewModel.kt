@@ -12,7 +12,14 @@ class MainActivityViewModel : ViewModel() {
     private val _url = MutableLiveData<String>()
     val url: LiveData<String> = _url
 
-    fun uiAction(action: WebViewUiAction) {
+    private val _progress = MutableLiveData<Int>()
+    val progress: LiveData<Int> = _progress
+
+    val progressChanged: (Int) -> Unit = { num ->
+        _progress.value = num
+    }
+
+    val uiAction: (WebViewUiAction) -> Unit = { action ->
         when (action) {
             WebViewUiAction.HistoryBack -> {
                 _navEvent.value = NavEvent.GoBack
@@ -31,26 +38,6 @@ class MainActivityViewModel : ViewModel() {
             }
         }
     }
-
-//    val uiAction: (WebViewUiAction) -> Unit = { action ->
-//        when (action) {
-//            WebViewUiAction.HistoryBack -> {
-//                _navEvent.value = NavEvent.GoBack
-//            }
-//
-//            WebViewUiAction.HistoryForward -> {
-//                _navEvent.value = NavEvent.GoForward
-//            }
-//
-//            WebViewUiAction.RefreshPressed -> {
-//                _navEvent.value = NavEvent.Refresh
-//            }
-//
-//            is WebViewUiAction.AddressChanged -> {
-//                _url.value = action.url
-//            }
-//        }
-//    }
 }
 
 sealed class WebViewUiAction() {

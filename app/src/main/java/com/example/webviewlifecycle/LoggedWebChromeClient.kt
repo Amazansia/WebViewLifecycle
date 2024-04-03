@@ -17,7 +17,7 @@ private const val TAG = "LoggedWebChromeClient"
 
 class LoggedWebChromeClient(private val viewModel: MainActivityViewModel) : WebChromeClient() {
     override fun onProgressChanged(view: WebView?, newProgress: Int) {
-        Log.d(TAG, "onProgressChanged: $newProgres")
+        Log.d(TAG, "onProgressChanged: $newProgress")
         viewModel.progressChanged.invoke(newProgress)
         super.onProgressChanged(view, newProgress)
     }
@@ -58,7 +58,7 @@ class LoggedWebChromeClient(private val viewModel: MainActivityViewModel) : WebC
         isUserGesture: Boolean,
         resultMsg: Message?,
     ): Boolean {
-        Log.d(TAG, "onCreateWindow: $resultMsg")
+        Log.d(TAG, "onCreateWindow: $resultMsg, $isDialog, $isUserGesture, $resultMsg")
         return super.onCreateWindow(view, isDialog, isUserGesture, resultMsg)
     }
 
@@ -74,6 +74,7 @@ class LoggedWebChromeClient(private val viewModel: MainActivityViewModel) : WebC
 
     override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
         Log.d(TAG, "onJsAlert: url: $url, msg: $message, result: $result")
+        viewModel.showAlertDialog.invoke(AlertDialog(message = message ?: "", result = result))
         return super.onJsAlert(view, url, message, result)
     }
 
@@ -92,6 +93,8 @@ class LoggedWebChromeClient(private val viewModel: MainActivityViewModel) : WebC
         callback: GeolocationPermissions.Callback?,
     ) {
         Log.d(TAG, "onGeolocationPermissionsShowPrompt: $origin")
+
+        callback?.invoke(origin, true, false)
         super.onGeolocationPermissionsShowPrompt(origin, callback)
     }
 

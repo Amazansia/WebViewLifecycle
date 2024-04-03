@@ -15,6 +15,13 @@ class MainActivityViewModel : ViewModel() {
     private val _progress = MutableLiveData<Int>()
     val progress: LiveData<Int> = _progress
 
+    private var _alertDialog = MutableLiveData<AlertDialog>()
+    val alertDialog: LiveData<AlertDialog> = _alertDialog
+
+    val showAlertDialog: (AlertDialog) -> Unit = { alert ->
+        _alertDialog.value = alert
+    }
+
     val progressChanged: (Int) -> Unit = { num ->
         _progress.value = num
     }
@@ -52,4 +59,10 @@ sealed class NavEvent() {
     object GoBack : NavEvent()
     object Refresh : NavEvent()
     object GoForward : NavEvent()
+}
+
+
+sealed class JsAlert() {
+    data class ShowAlert(val alert: AlertDialog) : JsAlert()
+    object CloseAlert : JsAlert()
 }

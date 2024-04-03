@@ -35,7 +35,6 @@ open class LoggedWebViewClient() : WebViewClient() {
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         Log.d(TAG, "onPageStarted: $url")
-
         super.onPageStarted(view, url, favicon)
     }
 

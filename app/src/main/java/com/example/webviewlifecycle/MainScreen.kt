@@ -1,5 +1,7 @@
 package com.example.webviewlifecycle
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -11,7 +13,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -86,9 +87,12 @@ fun LinearDeterminateIndicator(viewModel: MainActivityViewModel) {
 
 @Composable
 fun WebviewBottomBar(viewModel: MainActivityViewModel) {
-    BottomAppBar(
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .background(color = Color.White)
     ) {
-        // 이게 왜 균등배치가 안될까... TODO
         val modifier = Modifier.weight(1f)
         //TODO: viewModel 직접 참조하지 말고 호이스팅으로 변경
         BottomBarButton(
@@ -106,6 +110,7 @@ fun WebviewBottomBar(viewModel: MainActivityViewModel) {
             modifier = modifier,
             icon = Icons.Default.Refresh
         )
+
     }
 }
 

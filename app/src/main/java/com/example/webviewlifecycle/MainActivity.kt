@@ -1,9 +1,18 @@
 package com.example.webviewlifecycle
 
+import android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.checkSelfPermission
 import com.example.webviewlifecycle.databinding.MainActivityBinding
 
 private const val TAG = "MainActivity"
@@ -13,8 +22,8 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainActivityViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestLocationPermission()
         binding = MainActivityBinding.inflate(layoutInflater).also {
-
             it.progressBar.setContent {
                 LinearDeterminateIndicator(viewModel)
             }
@@ -26,8 +35,33 @@ class MainActivity : ComponentActivity() {
                 WebviewBottomBar(viewModel)
             }
         }
+
         initView()
         observeViewModel()
+    }
+
+    private fun requestLocationPermission() {
+        if (checkSelfPermission(
+                this,
+                ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(
+                this,
+                ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED || checkSelfPermission(
+                this,
+                ACCESS_BACKGROUND_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(
+                    ACCESS_COARSE_LOCATION,
+                    ACCESS_FINE_LOCATION,
+                    ACCESS_BACKGROUND_LOCATION
+                ),
+                1
+            )
+        }
     }
 
     private fun observeViewModel() {
@@ -50,9 +84,6 @@ class MainActivity : ComponentActivity() {
             url.observe(this@MainActivity) {
                 binding.webview.loadUrl(it)
             }
-            progress.observe(this@MainActivity) {
-
-            }
         }
     }
 
@@ -61,13 +92,12 @@ class MainActivity : ComponentActivity() {
             webview.apply {
                 isFocusable = true
                 isFocusableInTouchMode = true
-
+                // 아래 줄 없애면 삼성 인터넷으로 연결되는데 이유가 뭘까
                 webViewClient = LoggedWebViewClient()
                 webChromeClient = LoggedWebChromeClient(viewModel)
-
                 // settings
                 settings.javaScriptEnabled = true
-                settings.setSupportMultipleWindows(true)
+                settings.setSupportMultipleWindows(false)
                 settings.javaScriptCanOpenWindowsAutomatically = true
                 settings.domStorageEnabled = true
                 settings.allowContentAccess = false
@@ -78,9 +108,15 @@ class MainActivity : ComponentActivity() {
                 settings.databaseEnabled = true
                 settings.setGeolocationEnabled(true)
                 settings.safeBrowsingEnabled = false
-                settings.cacheMode = WebSettings.LOAD_NO_CACHE
+                settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
+
+                addJavascriptInterface(JsInterface(this@MainActivity), "test2")
+
+                WebViewTransport()
+
+                evaluateJavascript("test script", null)
                 loadUrl("https://www.daum.net/")
             }
         }
@@ -92,6 +128,14 @@ class MainActivity : ComponentActivity() {
             return
         }
         super.onBackPressed()
+    }
+
+
+    class JsInterface(val con: Context) {
+        @JavascriptInterface
+        fun JsTest() {
+            Toast.makeText(con, "JsTestToast", Toast.LENGTH_LONG).show()
+        }
     }
 }
 

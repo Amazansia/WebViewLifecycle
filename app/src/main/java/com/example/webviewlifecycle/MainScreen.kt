@@ -21,6 +21,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
+private const val TAG = "MainScreen"
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +52,12 @@ fun TopBarNaviIcon() {
 
 @Composable
 fun WebviewAddressBar(viewModel: MainActivityViewModel) {
-    var url by remember { mutableStateOf("") }
+    var addressBarUrl by remember { mutableStateOf(viewModel.url.value.orEmpty()) }
+    val httpUrl = viewModel.httpUrl.observeAsState().value
+
+    LaunchedEffect(key1 = httpUrl) {
+        addressBarUrl = httpUrl.orEmpty()
+    }
 
     TextField(
         modifier = Modifier
@@ -60,12 +67,14 @@ fun WebviewAddressBar(viewModel: MainActivityViewModel) {
         colors = TextFieldDefaults.colors(
             unfocusedIndicatorColor = Color.Transparent
         ),
-        value = url,
-        onValueChange = { url = it },
+        value = addressBarUrl,
+        onValueChange = {
+            addressBarUrl = it
+        },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {
-                viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(url))
+                viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(addressBarUrl))
             }
         ),
         singleLine = true
@@ -110,7 +119,6 @@ fun WebviewBottomBar(viewModel: MainActivityViewModel) {
             modifier = modifier,
             icon = Icons.Default.Refresh
         )
-
     }
 }
 

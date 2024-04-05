@@ -18,7 +18,7 @@ import android.webkit.WebViewClient
 
 private const val TAG = "LoggedWebViewClient"
 
-open class LoggedWebViewClient() : WebViewClient() {
+open class LoggedWebViewClient(val viewModel: MainActivityViewModel) : WebViewClient() {
     @Deprecated(
         "Deprecated in Java",
         ReplaceWith("super.shouldOverrideUrlLoading(view, url)", "android.webkit.WebViewClient")
@@ -35,6 +35,7 @@ open class LoggedWebViewClient() : WebViewClient() {
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         Log.d(TAG, "onPageStarted: $url")
+        viewModel.uiAction.invoke(WebViewUiAction.HttpAddressUpdated(url.orEmpty()))
         super.onPageStarted(view, url, favicon)
     }
 
@@ -50,6 +51,7 @@ open class LoggedWebViewClient() : WebViewClient() {
 
     override fun onPageCommitVisible(view: WebView?, url: String?) {
         Log.d(TAG, "onPageCommitVisible: $url")
+
         super.onPageCommitVisible(view, url)
     }
 

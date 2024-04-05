@@ -28,6 +28,7 @@ class MainActivity : ComponentActivity() {
                 LinearDeterminateIndicator(viewModel)
             }
             it.topBar.setContent {
+
                 WebviewTopBar(viewModel)
             }
             setContentView(it.root)
@@ -93,7 +94,7 @@ class MainActivity : ComponentActivity() {
                 isFocusable = true
                 isFocusableInTouchMode = true
                 // 아래 줄 없애면 삼성 인터넷으로 연결되는데 이유가 뭘까
-                webViewClient = LoggedWebViewClient()
+                webViewClient = LoggedWebViewClient(viewModel = viewModel)
                 webChromeClient = LoggedWebChromeClient(viewModel)
                 // settings
                 settings.javaScriptEnabled = true
@@ -117,7 +118,6 @@ class MainActivity : ComponentActivity() {
                 WebViewTransport()
 
                 evaluateJavascript("test script", null)
-                loadUrl("https://www.daum.net/")
             }
         }
     }

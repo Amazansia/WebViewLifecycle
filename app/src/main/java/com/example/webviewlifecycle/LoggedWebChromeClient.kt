@@ -74,7 +74,6 @@ class LoggedWebChromeClient(private val viewModel: MainActivityViewModel) : WebC
 
     override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
         Log.d(TAG, "onJsAlert: url: $url, msg: $message, result: $result")
-        viewModel.showAlertDialog.invoke(AlertDialog(message = message ?: "", result = result))
         return super.onJsAlert(view, url, message, result)
     }
 

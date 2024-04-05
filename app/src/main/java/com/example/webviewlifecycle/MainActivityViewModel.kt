@@ -9,18 +9,14 @@ class MainActivityViewModel : ViewModel() {
     private val _navEvent = MutableLiveData<NavEvent>()
     val navEvent: LiveData<NavEvent> = _navEvent
 
-    private val _url = MutableLiveData<String>()
+    private val _url = MutableLiveData("https://www.daum.net/")
     val url: LiveData<String> = _url
+
+    private val _httpUrl = MutableLiveData("https://www.daum.net/")
+    val httpUrl: LiveData<String> = _httpUrl
 
     private val _progress = MutableLiveData<Int>()
     val progress: LiveData<Int> = _progress
-
-    private var _alertDialog = MutableLiveData<AlertDialog>()
-    val alertDialog: LiveData<AlertDialog> = _alertDialog
-
-    val showAlertDialog: (AlertDialog) -> Unit = { alert ->
-        _alertDialog.value = alert
-    }
 
     val progressChanged: (Int) -> Unit = { num ->
         _progress.value = num
@@ -43,26 +39,25 @@ class MainActivityViewModel : ViewModel() {
             is WebViewUiAction.AddressChanged -> {
                 _url.value = action.url
             }
+
+            is WebViewUiAction.HttpAddressUpdated -> {
+                _httpUrl.value = action.url
+            }
         }
     }
 }
 
-sealed class WebViewUiAction() {
+sealed class WebViewUiAction {
     object HistoryForward : WebViewUiAction()
     object HistoryBack : WebViewUiAction()
     object RefreshPressed : WebViewUiAction()
     data class AddressChanged(val url: String) : WebViewUiAction()
+    data class HttpAddressUpdated(val url: String) : WebViewUiAction()
 }
 
 
-sealed class NavEvent() {
+sealed class NavEvent {
     object GoBack : NavEvent()
     object Refresh : NavEvent()
     object GoForward : NavEvent()
-}
-
-
-sealed class JsAlert() {
-    data class ShowAlert(val alert: AlertDialog) : JsAlert()
-    object CloseAlert : JsAlert()
 }

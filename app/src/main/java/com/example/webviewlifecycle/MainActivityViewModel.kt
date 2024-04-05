@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class MainActivityViewModel : ViewModel() {
+    // stateFlow
 
     private val _navEvent = MutableLiveData<NavEvent>()
     val navEvent: LiveData<NavEvent> = _navEvent

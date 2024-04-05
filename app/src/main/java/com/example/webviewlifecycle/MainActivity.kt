@@ -28,7 +28,6 @@ class MainActivity : ComponentActivity() {
                 LinearDeterminateIndicator(viewModel)
             }
             it.topBar.setContent {
-
                 WebviewTopBar(viewModel)
             }
             setContentView(it.root)

@@ -1,6 +1,10 @@
+@file:Suppress("UNUSED_EXPRESSION")
+
 package com.example.webviewlifecycle
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -9,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -27,10 +32,16 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 private const val TAG = "MainScreen"
@@ -50,19 +61,29 @@ fun TopBarNaviIcon() {
 //    TODO("Not yet implemented")
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun WebviewAddressBar(viewModel: MainActivityViewModel) {
-    var addressBarUrl by remember { mutableStateOf(viewModel.url.value.orEmpty()) }
+    var addressBarUrl by remember { mutableStateOf(TextFieldValue(viewModel.url.value.orEmpty())) }
+    var focusState by remember { mutableStateOf(false) }
     val httpUrl = viewModel.httpUrl.observeAsState().value
-
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
     LaunchedEffect(key1 = httpUrl) {
-        addressBarUrl = httpUrl.orEmpty()
+        addressBarUrl = TextFieldValue(httpUrl.orEmpty())
     }
 
     TextField(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(10.dp),
+            .padding(10.dp)
+            .onFocusChanged {
+                focusState = it.isFocused
+                if (it.isFocused) {
+                    addressBarUrl =
+                        addressBarUrl.copy(selection = TextRange(0, end = addressBarUrl.text.length))
+                }
+            },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
             unfocusedIndicatorColor = Color.Transparent
@@ -74,10 +95,20 @@ fun WebviewAddressBar(viewModel: MainActivityViewModel) {
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {
-                viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(addressBarUrl))
+                viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(addressBarUrl.text))
+                keyboardController?.hide()
+                focusManager.clearFocus()
+                focusState = false
             }
         ),
-        singleLine = true
+        singleLine = true,
+        trailingIcon = {
+            AnimatedVisibility(visible = focusState) {
+                Icon(Icons.Default.Clear, "", modifier = Modifier.clickable {
+                    addressBarUrl = addressBarUrl.copy(text = "")
+                })
+            }
+        }
     )
 }
 

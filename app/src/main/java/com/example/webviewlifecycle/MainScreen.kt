@@ -38,7 +38,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.webviewlifecycle.R.drawable.kakao_logo
@@ -46,8 +45,7 @@ import com.example.webviewlifecycle.R.drawable.kakao_logo
 private const val TAG = "MainScreen"
 
 @Composable
-fun WebviewTopBar(viewModel: MainActivityViewModel) {
-    val url = viewModel.webSchemeUrl.observeAsState()
+fun WebviewTopBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
     Row(
         modifier = Modifier
             .padding(5.dp)
@@ -63,19 +61,16 @@ fun WebviewTopBar(viewModel: MainActivityViewModel) {
             contentDescription = "",
             tint = Color(R.color.kakao_brand)
         )
-        WebviewAddressBar(viewModel = viewModel, webSchemeUrl = url.value.orEmpty())
+        WebviewAddressBar(onAddressChange = onAddressChange, onLoadUrl = onLoadUrl, url = url)
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun WebviewAddressBar(viewModel: MainActivityViewModel, webSchemeUrl: String) {
-    var addressBarUrl by remember { mutableStateOf(TextFieldValue(webSchemeUrl)) }
+fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
     var focusState by remember { mutableStateOf(false) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-
-    addressBarUrl = addressBarUrl.copy(text = webSchemeUrl)
 
     TextField(
         modifier = Modifier
@@ -87,14 +82,15 @@ fun WebviewAddressBar(viewModel: MainActivityViewModel, webSchemeUrl: String) {
         colors = TextFieldDefaults.colors(
             unfocusedIndicatorColor = Color.Transparent
         ),
-        value = addressBarUrl,
+        value = url,
         onValueChange = {
-            addressBarUrl = it
+            onAddressChange(it)
+            Log.d(TAG, "WebviewAddressBar: asdasdads $it")
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {
-                viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(addressBarUrl.text))
+                onLoadUrl()
                 keyboardController?.hide()
                 focusManager.clearFocus()
                 focusState = false
@@ -103,9 +99,12 @@ fun WebviewAddressBar(viewModel: MainActivityViewModel, webSchemeUrl: String) {
         singleLine = true,
         trailingIcon = {
             AnimatedVisibility(visible = focusState) {
-                Icon(Icons.Default.Clear, "", modifier = Modifier.clickable {
-                    addressBarUrl = addressBarUrl.copy(text = "")
-                })
+                Icon(
+                    imageVector = Icons.Default.Clear, "",
+                    modifier = Modifier
+                        .clickable {
+                            onAddressChange("")
+                        })
             }
         }
     )

@@ -5,13 +5,16 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
+import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
 import com.example.webviewlifecycle.databinding.MainActivityBinding
@@ -24,12 +27,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestLocationPermission()
+
         binding = MainActivityBinding.inflate(layoutInflater).also {
             it.progressBar.setContent {
                 LinearDeterminateIndicator(viewModel)
             }
             it.topBar.setContent {
-                WebviewTopBar(viewModel)
+                WebviewTopBar(
+                    onAddressChange = { url ->
+                        viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(url))
+                    },
+                    onLoadUrl = {
+                        viewModel.uiAction.invoke(WebViewUiAction.LoadUrl)
+                    },
+                    url = viewModel.url.observeAsState().value.orEmpty()
+                )
             }
             setContentView(it.root)
             it.bottomBar.setContent {
@@ -80,11 +92,11 @@ class MainActivity : ComponentActivity() {
                     NavEvent.Refresh -> {
                         binding.webview.reload()
                     }
+
+                    is NavEvent.LoadUrl -> {
+                        binding.webview.loadUrl(url.value.orEmpty())
+                    }
                 }
-            }
-            url.observe(this@MainActivity) {
-                binding.webview.loadUrl(it)
-                Log.e(TAG, "3observeViewModel: url: ${url.value}, it: ${it.orEmpty()}")
             }
         }
     }
@@ -94,8 +106,13 @@ class MainActivity : ComponentActivity() {
             webview.apply {
                 isFocusable = true
                 isFocusableInTouchMode = true
-                // 아래 줄 없애면 삼성 인터넷으로 연결되는데 이유가 뭘까
-                webViewClient = LoggedWebViewClient(viewModel = viewModel)
+                webViewClient = object : LoggedWebViewClient() {
+                    override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
+                        Log.d(TAG, "onPageStarted: $url")
+                        viewModel.uiAction.invoke(WebViewUiAction.AddressChanged(url.orEmpty()))
+                        super.onPageStarted(view, url, favicon)
+                    }
+                }
                 webChromeClient = LoggedWebChromeClient(viewModel)
                 // settings
                 settings.javaScriptEnabled = true

@@ -8,6 +8,8 @@ import androidx.lifecycle.ViewModel
 private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
+
+
     // stateFlow
 
     private val _navEvent = MutableLiveData<NavEvent>()
@@ -15,9 +17,6 @@ class MainActivityViewModel : ViewModel() {
 
     private val _url = MutableLiveData("https://www.daum.net/")
     val url: LiveData<String> = _url
-
-    private val _webSchemeUrl = MutableLiveData("https://www.daum.net/")
-    val webSchemeUrl: LiveData<String> = _webSchemeUrl
 
     private val _progress = MutableLiveData<Int>()
     val progress: LiveData<Int> = _progress
@@ -41,14 +40,18 @@ class MainActivityViewModel : ViewModel() {
             }
 
             is WebViewUiAction.AddressChanged -> {
+                Log.d(TAG, "addressChanged ${action.url}: ")
                 _url.value = action.url
             }
 
-            is WebViewUiAction.HttpAddressUpdated -> {
-                _webSchemeUrl.value = action.url
-                Log.d(TAG, "httpUrl: ${webSchemeUrl.value}: ")
+            WebViewUiAction.LoadUrl -> {
+                _navEvent.value = NavEvent.LoadUrl(url.value.orEmpty())
             }
         }
+    }
+
+    init {
+        uiAction.invoke(WebViewUiAction.LoadUrl)
     }
 }
 
@@ -56,8 +59,9 @@ sealed class WebViewUiAction {
     object HistoryForward : WebViewUiAction()
     object HistoryBack : WebViewUiAction()
     object RefreshPressed : WebViewUiAction()
+    object LoadUrl : WebViewUiAction()
     data class AddressChanged(val url: String) : WebViewUiAction()
-    data class HttpAddressUpdated(val url: String) : WebViewUiAction()
+
 }
 
 
@@ -65,4 +69,5 @@ sealed class NavEvent {
     object GoBack : NavEvent()
     object Refresh : NavEvent()
     object GoForward : NavEvent()
+    data class LoadUrl(val url: String) : NavEvent()
 }

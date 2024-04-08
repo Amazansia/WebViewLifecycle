@@ -15,8 +15,11 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
+import androidx.core.graphics.drawable.toBitmap
 import com.example.webviewlifecycle.databinding.MainActivityBinding
 
 private const val TAG = "MainActivity"
@@ -40,7 +43,10 @@ class MainActivity : ComponentActivity() {
                     onLoadUrl = {
                         viewModel.uiAction.invoke(WebViewUiAction.LoadUrl)
                     },
-                    url = viewModel.url.observeAsState().value.orEmpty()
+                    url = viewModel.url.observeAsState().value.orEmpty(),
+                    favicon = viewModel.favicon.observeAsState().value?.asImageBitmap()
+                        ?: LocalContext.current.resources.getDrawable(R.drawable.kakao_logo, null).toBitmap()
+                            .asImageBitmap()
                 )
             }
             setContentView(it.root)
@@ -113,7 +119,21 @@ class MainActivity : ComponentActivity() {
                         super.onPageStarted(view, url, favicon)
                     }
                 }
-                webChromeClient = LoggedWebChromeClient(viewModel)
+                webChromeClient = object : LoggedWebChromeClient() {
+                    override fun onProgressChanged(view: WebView?, newProgress: Int) {
+                        Log.d(TAG, "onProgressChanged: $newProgress")
+                        viewModel.progressChanged.invoke(newProgress)
+                        super.onProgressChanged(view, newProgress)
+                    }
+
+                    override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
+                        Log.d(TAG, "onReceivedIcon: $icon")
+                        icon?.let {
+                            viewModel.faviconReceived.invoke(it)
+                        }
+                        super.onReceivedIcon(view, icon)
+                    }
+                }
                 // settings
                 settings.javaScriptEnabled = true
                 settings.setSupportMultipleWindows(false)

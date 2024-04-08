@@ -1,6 +1,6 @@
 package com.example.webviewlifecycle
 
-import android.util.Log
+import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -8,9 +8,6 @@ import androidx.lifecycle.ViewModel
 private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
-
-
-    // stateFlow
 
     private val _navEvent = MutableLiveData<NavEvent>()
     val navEvent: LiveData<NavEvent> = _navEvent
@@ -23,6 +20,13 @@ class MainActivityViewModel : ViewModel() {
 
     val progressChanged: (Int) -> Unit = { num ->
         _progress.value = num
+    }
+
+    private var _favicon = MutableLiveData<Bitmap>()
+    val favicon: LiveData<Bitmap> = _favicon
+
+    val faviconReceived: (Bitmap) -> Unit = { favicon ->
+        _favicon.value = favicon
     }
 
     val uiAction: (WebViewUiAction) -> Unit = { action ->
@@ -40,7 +44,6 @@ class MainActivityViewModel : ViewModel() {
             }
 
             is WebViewUiAction.AddressChanged -> {
-                Log.d(TAG, "addressChanged ${action.url}: ")
                 _url.value = action.url
             }
 

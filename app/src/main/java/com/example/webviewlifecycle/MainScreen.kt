@@ -1,7 +1,7 @@
 package com.example.webviewlifecycle
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
@@ -33,10 +33,10 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
@@ -45,7 +45,12 @@ import androidx.compose.ui.unit.dp
 private const val TAG = "MainScreen"
 
 @Composable
-fun WebviewTopBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
+fun WebviewTopBar(
+    onAddressChange: (String) -> Unit,
+    onLoadUrl: () -> Unit,
+    url: String,
+    favicon: ImageBitmap,
+) {
     Row(
         modifier = Modifier
             .padding(5.dp)
@@ -53,13 +58,12 @@ fun WebviewTopBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url:
             .wrapContentSize()
             .background(Color.White)
     ) {
-        Icon(
+        Image(
             modifier = Modifier
                 .padding(5.dp)
                 .size(50.dp),
-            painter = painterResource(R.drawable.kakao_logo),
+            bitmap = favicon,
             contentDescription = "",
-            tint = colorResource(id = R.color.kakao_brand)
         )
         WebviewAddressBar(onAddressChange = onAddressChange, onLoadUrl = onLoadUrl, url = url)
     }
@@ -85,7 +89,6 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
         value = url,
         onValueChange = {
             onAddressChange(it)
-            Log.d(TAG, "WebviewAddressBar: asdasdads $it")
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(

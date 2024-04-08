@@ -6,6 +6,7 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.webkit.JavascriptInterface
 import android.webkit.WebSettings
 import android.widget.Toast
@@ -83,6 +84,7 @@ class MainActivity : ComponentActivity() {
             }
             url.observe(this@MainActivity) {
                 binding.webview.loadUrl(it)
+                Log.e(TAG, "3observeViewModel: url: ${url.value}, it: ${it.orEmpty()}")
             }
         }
     }
@@ -111,11 +113,8 @@ class MainActivity : ComponentActivity() {
                 settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
-
                 addJavascriptInterface(JsInterface(this@MainActivity), "test2")
-
                 WebViewTransport()
-
                 evaluateJavascript("test script", null)
             }
         }

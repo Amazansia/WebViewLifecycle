@@ -1,8 +1,11 @@
 package com.example.webviewlifecycle
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+
+private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
     // stateFlow
@@ -13,8 +16,8 @@ class MainActivityViewModel : ViewModel() {
     private val _url = MutableLiveData("https://www.daum.net/")
     val url: LiveData<String> = _url
 
-    private val _httpUrl = MutableLiveData("https://www.daum.net/")
-    val httpUrl: LiveData<String> = _httpUrl
+    private val _webSchemeUrl = MutableLiveData("https://www.daum.net/")
+    val webSchemeUrl: LiveData<String> = _webSchemeUrl
 
     private val _progress = MutableLiveData<Int>()
     val progress: LiveData<Int> = _progress
@@ -42,7 +45,8 @@ class MainActivityViewModel : ViewModel() {
             }
 
             is WebViewUiAction.HttpAddressUpdated -> {
-                _httpUrl.value = action.url
+                _webSchemeUrl.value = action.url
+                Log.d(TAG, "httpUrl: ${webSchemeUrl.value}: ")
             }
         }
     }

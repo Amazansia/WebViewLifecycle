@@ -36,11 +36,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.webviewlifecycle.R.drawable.kakao_logo
 
 private const val TAG = "MainScreen"
 
@@ -51,15 +51,15 @@ fun WebviewTopBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url:
             .padding(5.dp)
             .fillMaxWidth()
             .wrapContentSize()
-            .background(Color.Transparent)
+            .background(Color.White)
     ) {
         Icon(
             modifier = Modifier
                 .padding(5.dp)
                 .size(50.dp),
-            painter = painterResource(kakao_logo),
+            painter = painterResource(R.drawable.kakao_logo),
             contentDescription = "",
-            tint = Color(R.color.kakao_brand)
+            tint = colorResource(id = R.color.kakao_brand)
         )
         WebviewAddressBar(onAddressChange = onAddressChange, onLoadUrl = onLoadUrl, url = url)
     }
@@ -163,28 +163,6 @@ fun BottomBarButton(onPressed: () -> Unit, modifier: Modifier, icon: ImageVector
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewTopBar() {
-    var addressBarUrl by remember {
-        mutableStateOf("init value")
-    }
-    TextField(
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
-        colors = TextFieldDefaults.colors(
-            unfocusedIndicatorColor = Color.Transparent
-        ),
-        value = addressBarUrl,
-        onValueChange = { changedValue ->
-            addressBarUrl = changedValue
-        },
-        keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(
-            onSearch = {
-                Log.e(TAG, "WebviewAddressBar: onSearch: $addressBarUrl")
-            }
-        ),
-        singleLine = true,
-    )
+fun PreviewIcon() {
+    Icon(painter = painterResource(id = R.drawable.kakao_logo), contentDescription = "", tint = Color.Yellow)
 }

@@ -44,7 +44,7 @@ open class LoggedWebViewClient : WebViewClient() {
     }
 
     override fun onLoadResource(view: WebView?, url: String?) {
-        Log.d(TAG, "onLoadResource: $url")
+//        Log.d(TAG, "onLoadResource: $url")
         super.onLoadResource(view, url)
     }
 
@@ -55,7 +55,7 @@ open class LoggedWebViewClient : WebViewClient() {
     }
 
     override fun shouldInterceptRequest(view: WebView?, url: String?): WebResourceResponse? {
-        Log.d(TAG, "shouldInterceptRequest: $url")
+//        Log.d(TAG, "shouldInterceptRequest: $url")
         return super.shouldInterceptRequest(view, url)
     }
 

@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 private const val TAG = "MainActivityViewModel"
 
@@ -15,8 +17,8 @@ class MainActivityViewModel : ViewModel() {
     private val _url = MutableLiveData("https://www.daum.net/")
     val url: LiveData<String> = _url
 
-    private val _progress = MutableLiveData<Int>()
-    val progress: LiveData<Int> = _progress
+    private val _progress = MutableStateFlow(0)
+    val progress: StateFlow<Int> = _progress
 
     val progressChanged: (Int) -> Unit = { num ->
         _progress.value = num

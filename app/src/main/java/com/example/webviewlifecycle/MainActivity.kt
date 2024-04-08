@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.graphics.drawable.toBitmap
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.webviewlifecycle.databinding.MainActivityBinding
 
 private const val TAG = "MainActivity"
@@ -33,7 +34,8 @@ class MainActivity : ComponentActivity() {
 
         binding = MainActivityBinding.inflate(layoutInflater).also {
             it.progressBar.setContent {
-                LinearDeterminateIndicator(viewModel)
+                val progress = viewModel.progress.collectAsStateWithLifecycle().value
+                LinearDeterminateIndicator(progress = progress)
             }
             it.topBar.setContent {
                 WebviewTopBar(
@@ -51,7 +53,11 @@ class MainActivity : ComponentActivity() {
             }
             setContentView(it.root)
             it.bottomBar.setContent {
-                WebviewBottomBar(viewModel)
+                WebviewBottomBar(
+                    onHistoryBack = { viewModel.uiAction.invoke(WebViewUiAction.HistoryBack) },
+                    onHistoryForward = { viewModel.uiAction.invoke(WebViewUiAction.HistoryForward) },
+                    onRefreshPressed = { viewModel.uiAction.invoke(WebViewUiAction.RefreshPressed) }
+                )
             }
         }
 
@@ -122,6 +128,7 @@ class MainActivity : ComponentActivity() {
                 webChromeClient = object : LoggedWebChromeClient() {
                     override fun onProgressChanged(view: WebView?, newProgress: Int) {
                         Log.d(TAG, "onProgressChanged: $newProgress")
+                        view
                         viewModel.progressChanged.invoke(newProgress)
                         super.onProgressChanged(view, newProgress)
                     }

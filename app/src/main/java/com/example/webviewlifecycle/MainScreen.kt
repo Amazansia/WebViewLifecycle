@@ -25,7 +25,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,9 +36,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
 private const val TAG = "MainScreen"
@@ -114,8 +111,7 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
 }
 
 @Composable
-fun LinearDeterminateIndicator(viewModel: MainActivityViewModel) {
-    val progress = viewModel.progress.observeAsState().value ?: 0
+fun LinearDeterminateIndicator(progress: Int) {
     if (progress != 100) {
         LinearProgressIndicator(
             progress = progress.toFloat() / 100,
@@ -127,7 +123,11 @@ fun LinearDeterminateIndicator(viewModel: MainActivityViewModel) {
 }
 
 @Composable
-fun WebviewBottomBar(viewModel: MainActivityViewModel) {
+fun WebviewBottomBar(
+    onHistoryBack: () -> Unit,
+    onHistoryForward: () -> Unit,
+    onRefreshPressed: () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -135,19 +135,18 @@ fun WebviewBottomBar(viewModel: MainActivityViewModel) {
             .background(color = Color.White)
     ) {
         val modifier = Modifier.weight(1f)
-        //TODO: viewModel 직접 참조하지 말고 호이스팅으로 변경
         BottomBarButton(
-            onPressed = { viewModel.uiAction.invoke(WebViewUiAction.HistoryBack) },
+            onPressed = { onHistoryBack() },
             modifier = modifier,
             icon = Icons.Default.KeyboardArrowLeft
         )
         BottomBarButton(
-            onPressed = { viewModel.uiAction.invoke(WebViewUiAction.HistoryForward) },
+            onPressed = { onHistoryForward() },
             modifier = modifier,
             icon = Icons.Default.KeyboardArrowRight
         )
         BottomBarButton(
-            onPressed = { viewModel.uiAction.invoke(WebViewUiAction.RefreshPressed) },
+            onPressed = { onRefreshPressed() },
             modifier = modifier,
             icon = Icons.Default.Refresh
         )
@@ -162,10 +161,4 @@ fun BottomBarButton(onPressed: () -> Unit, modifier: Modifier, icon: ImageVector
     ) {
         Icon(icon, contentDescription = "")
     }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewIcon() {
-    Icon(painter = painterResource(id = R.drawable.kakao_logo), contentDescription = "", tint = Color.Yellow)
 }

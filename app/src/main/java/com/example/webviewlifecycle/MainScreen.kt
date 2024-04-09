@@ -1,5 +1,6 @@
 package com.example.webviewlifecycle
 
+import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,11 +33,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 private const val TAG = "MainScreen"
@@ -46,7 +51,7 @@ fun WebviewTopBar(
     onAddressChange: (String) -> Unit,
     onLoadUrl: () -> Unit,
     url: String,
-    favicon: BitmapPainter,
+    favicon: Bitmap?,
 ) {
     Row(
         modifier = Modifier
@@ -56,7 +61,11 @@ fun WebviewTopBar(
             .background(Color.White)
     ) {
         Image(
-            painter = favicon,
+            painter = if (favicon == null) {
+                painterResource(id = R.drawable.kakao_logo)
+            } else {
+                BitmapPainter(favicon.asImageBitmap())
+            },
             modifier = Modifier
                 .padding(5.dp)
                 .size(50.dp),
@@ -70,6 +79,10 @@ fun WebviewTopBar(
 @Composable
 fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
     var focusState by remember { mutableStateOf(false) }
+    // TODO: 바꿔보기 remember를 왜 쓰는지 생각해보기
+    var tfValue by remember {
+        mutableStateOf(TextFieldValue(url))
+    }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -78,14 +91,16 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
             .fillMaxWidth()
             .onFocusChanged {
                 focusState = it.isFocused
+                tfValue = tfValue.copy(selection = TextRange(0, tfValue.text.length))
             },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
             unfocusedIndicatorColor = Color.Transparent
         ),
-        value = url,
+        value = tfValue,
         onValueChange = {
-            onAddressChange(it)
+            onAddressChange(it.text)
+            tfValue = tfValue.copy(text = url)
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(

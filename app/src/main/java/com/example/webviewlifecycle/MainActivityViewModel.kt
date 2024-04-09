@@ -1,7 +1,6 @@
 package com.example.webviewlifecycle
 
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
+import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -10,6 +9,9 @@ private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
 
+    // stateflow: 화면 전환할 때마다 emit
+    // 이벤트에 더 적합한 flow는 sharedFlow
+    // TODO: 화면 회전시 하얀화면으로 변경됨...
     private val _navEvent = MutableStateFlow<NavEvent>(NavEvent.Init)
     val navEvent: StateFlow<NavEvent> = _navEvent
 
@@ -19,17 +21,22 @@ class MainActivityViewModel : ViewModel() {
     private val _progress = MutableStateFlow(0)
     val progress: StateFlow<Int> = _progress
 
+    // 아래 uiAction하고 사용 의도가 살짝 다름
     val progressChanged: (Int) -> Unit = { num ->
         _progress.value = num
     }
 
-    private var _favicon = MutableStateFlow(BitmapPainter(ImageBitmap(50, 50)))
-    val favicon: StateFlow<BitmapPainter> = _favicon
+    // bitmap 형식의 데이터만 사용하도록 or nullable
+    // null 처리에 대한 로직이 필요하기 때문에 nullable로 해야 함
+    // 아니면 래핑클래스를 만들거나...
+    private var _favicon: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
+    val favicon: StateFlow<Bitmap?> = _favicon
 
-    val faviconReceived: (BitmapPainter) -> Unit = { favicon ->
+    val faviconReceived: (Bitmap?) -> Unit = { favicon ->
         _favicon.value = favicon
     }
 
+    // 액션에 대한 정보를 저장
     val uiAction: (WebViewUiAction) -> Unit = { action ->
         when (action) {
             WebViewUiAction.HistoryBack -> {
@@ -49,7 +56,7 @@ class MainActivityViewModel : ViewModel() {
             }
 
             WebViewUiAction.LoadUrl -> {
-                _navEvent.value = NavEvent.LoadUrl(url.value.orEmpty())
+                _navEvent.value = NavEvent.LoadUrl(url.value)
             }
         }
     }
@@ -66,7 +73,6 @@ sealed class WebViewUiAction {
     object LoadUrl : WebViewUiAction()
     data class AddressChanged(val url: String) : WebViewUiAction()
 }
-
 
 sealed class NavEvent {
     object Init : NavEvent()

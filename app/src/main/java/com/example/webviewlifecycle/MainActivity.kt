@@ -14,8 +14,6 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,7 +27,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestLocationPermission()
-
 
         binding = MainActivityBinding.inflate(layoutInflater).also {
             it.progressBar.setContent {
@@ -49,9 +46,11 @@ class MainActivity : ComponentActivity() {
                 )
             }
             setContentView(it.root)
-            it.bottomBar.setContent {
 
-                when (viewModel.navEvent.collectAsStateWithLifecycle().value) {
+            it.bottomBar.setContent {
+                // flow 로직 composable에서 빼기
+                val navEvent = viewModel.navEvent.collectAsStateWithLifecycle().value
+                when (navEvent) {
                     NavEvent.GoBack -> {
                         binding.webview.goBack()
                     }
@@ -65,13 +64,14 @@ class MainActivity : ComponentActivity() {
                     }
 
                     is NavEvent.LoadUrl -> {
-                        binding.webview.loadUrl(viewModel.url.collectAsStateWithLifecycle().value)
+                        binding.webview.loadUrl(navEvent.url)
                     }
 
                     NavEvent.Init -> {}
                 }
 
                 WebviewBottomBar(
+                    // 함수 파라미터 간단하게
                     onHistoryBack = { viewModel.uiAction.invoke(WebViewUiAction.HistoryBack) },
                     onHistoryForward = { viewModel.uiAction.invoke(WebViewUiAction.HistoryForward) },
                     onRefreshPressed = { viewModel.uiAction.invoke(WebViewUiAction.RefreshPressed) }
@@ -81,6 +81,7 @@ class MainActivity : ComponentActivity() {
         initView()
     }
 
+    // TODO: 리퀘스트가 들어오면 요구하는 방식으로 변경
     private fun requestLocationPermission() {
         if (checkSelfPermission(
                 this,
@@ -127,7 +128,7 @@ class MainActivity : ComponentActivity() {
                     override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
                         Log.d(TAG, "onReceivedIcon: $icon")
                         icon?.let {
-                            viewModel.faviconReceived.invoke(BitmapPainter(it.asImageBitmap()))
+                            viewModel.faviconReceived.invoke(it)
                         }
                         super.onReceivedIcon(view, icon)
                     }
@@ -148,8 +149,10 @@ class MainActivity : ComponentActivity() {
                 settings.cacheMode = WebSettings.LOAD_CACHE_ELSE_NETWORK
                 settings.mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
 
+                // 받는 것
                 addJavascriptInterface(JsInterface(this@MainActivity), "test2")
                 WebViewTransport()
+                // 실행하는 것
                 evaluateJavascript("test script", null)
             }
         }
@@ -162,7 +165,6 @@ class MainActivity : ComponentActivity() {
         }
         super.onBackPressed()
     }
-
 
     class JsInterface(val con: Context) {
         @JavascriptInterface

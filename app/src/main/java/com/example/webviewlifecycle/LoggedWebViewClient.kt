@@ -24,6 +24,7 @@ open class LoggedWebViewClient : WebViewClient() {
         ReplaceWith("super.shouldOverrideUrlLoading(view, url)", "android.webkit.WebViewClient")
     )
     override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
+        // url쪽 함수 자주 사용
         Log.d(TAG, "shouldOverrideUrlLoading: $url")
         return super.shouldOverrideUrlLoading(view, url)
     }
@@ -35,7 +36,6 @@ open class LoggedWebViewClient : WebViewClient() {
 
     override fun onPageStarted(view: WebView?, url: String?, favicon: Bitmap?) {
         Log.d(TAG, "onPageStarted: $url")
-
         super.onPageStarted(view, url, favicon)
     }
 

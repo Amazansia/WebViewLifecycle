@@ -17,7 +17,9 @@ import androidx.activity.viewModels
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import com.example.webviewlifecycle.databinding.MainActivityBinding
+import kotlinx.coroutines.launch
 
 private const val TAG = "MainActivity"
 
@@ -48,9 +50,17 @@ class MainActivity : ComponentActivity() {
             setContentView(it.root)
 
             it.bottomBar.setContent {
-                // flow 로직 composable에서 빼기
-                val navEvent = viewModel.navEvent.collectAsStateWithLifecycle().value
-                when (navEvent) {
+                WebviewBottomBar(
+                    onHistoryBack = { onUIAction(WebViewUiAction.HistoryBack) },
+                    onHistoryForward = { onUIAction(WebViewUiAction.HistoryForward) },
+                    onRefreshPressed = { onUIAction(WebViewUiAction.RefreshPressed) }
+                )
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.navEvent.collect { event ->
+                when (event) {
                     NavEvent.GoBack -> {
                         binding.webview.goBack()
                     }
@@ -64,21 +74,17 @@ class MainActivity : ComponentActivity() {
                     }
 
                     is NavEvent.LoadUrl -> {
-                        binding.webview.loadUrl(navEvent.url)
+                        binding.webview.loadUrl(event.url)
                     }
-
-                    NavEvent.Init -> {}
                 }
-
-                WebviewBottomBar(
-                    // 함수 파라미터 간단하게
-                    onHistoryBack = { viewModel.uiAction.invoke(WebViewUiAction.HistoryBack) },
-                    onHistoryForward = { viewModel.uiAction.invoke(WebViewUiAction.HistoryForward) },
-                    onRefreshPressed = { viewModel.uiAction.invoke(WebViewUiAction.RefreshPressed) }
-                )
             }
         }
+
         initView()
+    }
+
+    private fun onUIAction(action: WebViewUiAction) {
+        viewModel.uiAction.invoke(action)
     }
 
     // TODO: 리퀘스트가 들어오면 요구하는 방식으로 변경
@@ -121,7 +127,7 @@ class MainActivity : ComponentActivity() {
                 webChromeClient = object : LoggedWebChromeClient() {
                     override fun onProgressChanged(view: WebView?, newProgress: Int) {
                         Log.d(TAG, "onProgressChanged: $newProgress")
-                        viewModel.progressChanged.invoke(newProgress)
+                        viewModel.progressChanged(newProgress)
                         super.onProgressChanged(view, newProgress)
                     }
 

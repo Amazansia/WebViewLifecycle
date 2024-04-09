@@ -2,18 +2,20 @@ package com.example.webviewlifecycle
 
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.launch
 
 private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
 
-    // stateflow: 화면 전환할 때마다 emit
-    // 이벤트에 더 적합한 flow는 sharedFlow
-    // TODO: 화면 회전시 하얀화면으로 변경됨...
-    private val _navEvent = MutableStateFlow<NavEvent>(NavEvent.Init)
-    val navEvent: StateFlow<NavEvent> = _navEvent
+    //TODO: 화면 회전시 하얀화면으로 변경됨...
+    private val _navEvent = MutableSharedFlow<NavEvent>()
+    val navEvent = _navEvent.asSharedFlow()
 
     private val _url = MutableStateFlow("https://www.daum.net/")
     val url: StateFlow<String> = _url
@@ -21,14 +23,17 @@ class MainActivityViewModel : ViewModel() {
     private val _progress = MutableStateFlow(0)
     val progress: StateFlow<Int> = _progress
 
-    // 아래 uiAction하고 사용 의도가 살짝 다름
+    /*
+    아래 uiAction하고 사용 의도가 살짝 다름 - 함수형 변수를 쓸 필요 없음
     val progressChanged: (Int) -> Unit = { num ->
         _progress.value = num
     }
+    */
 
-    // bitmap 형식의 데이터만 사용하도록 or nullable
-    // null 처리에 대한 로직이 필요하기 때문에 nullable로 해야 함
-    // 아니면 래핑클래스를 만들거나...
+    fun progressChanged(num: Int) {
+        _progress.value = num
+    }
+
     private var _favicon: MutableStateFlow<Bitmap?> = MutableStateFlow(null)
     val favicon: StateFlow<Bitmap?> = _favicon
 
@@ -36,19 +41,25 @@ class MainActivityViewModel : ViewModel() {
         _favicon.value = favicon
     }
 
+    private fun event(event: NavEvent) {
+        viewModelScope.launch {
+            _navEvent.emit(event)
+        }
+    }
+
     // 액션에 대한 정보를 저장
     val uiAction: (WebViewUiAction) -> Unit = { action ->
         when (action) {
             WebViewUiAction.HistoryBack -> {
-                _navEvent.value = NavEvent.GoBack
+                event(NavEvent.GoBack)
             }
 
             WebViewUiAction.HistoryForward -> {
-                _navEvent.value = NavEvent.GoForward
+                event(NavEvent.GoForward)
             }
 
             WebViewUiAction.RefreshPressed -> {
-                _navEvent.value = NavEvent.Refresh
+                event(NavEvent.Refresh)
             }
 
             is WebViewUiAction.AddressChanged -> {
@@ -56,7 +67,7 @@ class MainActivityViewModel : ViewModel() {
             }
 
             WebViewUiAction.LoadUrl -> {
-                _navEvent.value = NavEvent.LoadUrl(url.value)
+                event(NavEvent.LoadUrl(url.value))
             }
         }
     }
@@ -75,7 +86,6 @@ sealed class WebViewUiAction {
 }
 
 sealed class NavEvent {
-    object Init : NavEvent()
     object GoBack : NavEvent()
     object Refresh : NavEvent()
     object GoForward : NavEvent()

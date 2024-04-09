@@ -32,7 +32,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -46,7 +46,7 @@ fun WebviewTopBar(
     onAddressChange: (String) -> Unit,
     onLoadUrl: () -> Unit,
     url: String,
-    favicon: ImageBitmap,
+    favicon: BitmapPainter,
 ) {
     Row(
         modifier = Modifier
@@ -56,10 +56,10 @@ fun WebviewTopBar(
             .background(Color.White)
     ) {
         Image(
+            painter = favicon,
             modifier = Modifier
                 .padding(5.dp)
                 .size(50.dp),
-            bitmap = favicon,
             contentDescription = "",
         )
         WebviewAddressBar(onAddressChange = onAddressChange, onLoadUrl = onLoadUrl, url = url)

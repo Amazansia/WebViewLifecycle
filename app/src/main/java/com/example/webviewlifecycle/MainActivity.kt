@@ -14,12 +14,10 @@ import android.webkit.WebView
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat.checkSelfPermission
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.webviewlifecycle.databinding.MainActivityBinding
 
@@ -31,6 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestLocationPermission()
+
 
         binding = MainActivityBinding.inflate(layoutInflater).also {
             it.progressBar.setContent {
@@ -45,14 +44,33 @@ class MainActivity : ComponentActivity() {
                     onLoadUrl = {
                         viewModel.uiAction.invoke(WebViewUiAction.LoadUrl)
                     },
-                    url = viewModel.url.observeAsState().value.orEmpty(),
-                    favicon = viewModel.favicon.observeAsState().value?.asImageBitmap()
-                        ?: LocalContext.current.resources.getDrawable(R.drawable.kakao_logo, null).toBitmap()
-                            .asImageBitmap()
+                    url = viewModel.url.collectAsStateWithLifecycle().value,
+                    favicon = viewModel.favicon.collectAsStateWithLifecycle().value
                 )
             }
             setContentView(it.root)
             it.bottomBar.setContent {
+
+                when (viewModel.navEvent.collectAsStateWithLifecycle().value) {
+                    NavEvent.GoBack -> {
+                        binding.webview.goBack()
+                    }
+
+                    NavEvent.GoForward -> {
+                        binding.webview.goForward()
+                    }
+
+                    NavEvent.Refresh -> {
+                        binding.webview.reload()
+                    }
+
+                    is NavEvent.LoadUrl -> {
+                        binding.webview.loadUrl(viewModel.url.collectAsStateWithLifecycle().value)
+                    }
+
+                    NavEvent.Init -> {}
+                }
+
                 WebviewBottomBar(
                     onHistoryBack = { viewModel.uiAction.invoke(WebViewUiAction.HistoryBack) },
                     onHistoryForward = { viewModel.uiAction.invoke(WebViewUiAction.HistoryForward) },
@@ -60,9 +78,7 @@ class MainActivity : ComponentActivity() {
                 )
             }
         }
-
         initView()
-        observeViewModel()
     }
 
     private fun requestLocationPermission() {
@@ -89,30 +105,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun observeViewModel() {
-        with(viewModel) {
-            navEvent.observe(this@MainActivity) {
-                when (it) {
-                    NavEvent.GoBack -> {
-                        binding.webview.goBack()
-                    }
-
-                    NavEvent.GoForward -> {
-                        binding.webview.goForward()
-                    }
-
-                    NavEvent.Refresh -> {
-                        binding.webview.reload()
-                    }
-
-                    is NavEvent.LoadUrl -> {
-                        binding.webview.loadUrl(url.value.orEmpty())
-                    }
-                }
-            }
-        }
-    }
-
     private fun initView() {
         with(binding) {
             webview.apply {
@@ -128,7 +120,6 @@ class MainActivity : ComponentActivity() {
                 webChromeClient = object : LoggedWebChromeClient() {
                     override fun onProgressChanged(view: WebView?, newProgress: Int) {
                         Log.d(TAG, "onProgressChanged: $newProgress")
-                        view
                         viewModel.progressChanged.invoke(newProgress)
                         super.onProgressChanged(view, newProgress)
                     }
@@ -136,7 +127,7 @@ class MainActivity : ComponentActivity() {
                     override fun onReceivedIcon(view: WebView?, icon: Bitmap?) {
                         Log.d(TAG, "onReceivedIcon: $icon")
                         icon?.let {
-                            viewModel.faviconReceived.invoke(it)
+                            viewModel.faviconReceived.invoke(BitmapPainter(it.asImageBitmap()))
                         }
                         super.onReceivedIcon(view, icon)
                     }

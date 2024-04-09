@@ -1,8 +1,7 @@
 package com.example.webviewlifecycle
 
-import android.graphics.Bitmap
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,11 +10,11 @@ private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
 
-    private val _navEvent = MutableLiveData<NavEvent>()
-    val navEvent: LiveData<NavEvent> = _navEvent
+    private val _navEvent = MutableStateFlow<NavEvent>(NavEvent.Init)
+    val navEvent: StateFlow<NavEvent> = _navEvent
 
-    private val _url = MutableLiveData("https://www.daum.net/")
-    val url: LiveData<String> = _url
+    private val _url = MutableStateFlow("https://www.daum.net/")
+    val url: StateFlow<String> = _url
 
     private val _progress = MutableStateFlow(0)
     val progress: StateFlow<Int> = _progress
@@ -24,10 +23,10 @@ class MainActivityViewModel : ViewModel() {
         _progress.value = num
     }
 
-    private var _favicon = MutableLiveData<Bitmap>()
-    val favicon: LiveData<Bitmap> = _favicon
+    private var _favicon = MutableStateFlow(BitmapPainter(ImageBitmap(50, 50)))
+    val favicon: StateFlow<BitmapPainter> = _favicon
 
-    val faviconReceived: (Bitmap) -> Unit = { favicon ->
+    val faviconReceived: (BitmapPainter) -> Unit = { favicon ->
         _favicon.value = favicon
     }
 
@@ -66,11 +65,11 @@ sealed class WebViewUiAction {
     object RefreshPressed : WebViewUiAction()
     object LoadUrl : WebViewUiAction()
     data class AddressChanged(val url: String) : WebViewUiAction()
-
 }
 
 
 sealed class NavEvent {
+    object Init : NavEvent()
     object GoBack : NavEvent()
     object Refresh : NavEvent()
     object GoForward : NavEvent()

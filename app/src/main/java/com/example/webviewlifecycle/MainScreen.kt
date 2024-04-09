@@ -1,6 +1,7 @@
 package com.example.webviewlifecycle
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -79,10 +80,15 @@ fun WebviewTopBar(
 @Composable
 fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
     var focusState by remember { mutableStateOf(false) }
-    // TODO: 바꿔보기 remember를 왜 쓰는지 생각해보기
+    // TODO: 바꿔보기 - remember를 왜 쓰는지 생각해보기
     var tfValue by remember {
         mutableStateOf(TextFieldValue(url))
     }
+
+    Log.e(TAG, "1WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
+    tfValue = tfValue.copy(text = url, selection = tfValue.selection)
+    Log.e(TAG, "2WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
+
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
@@ -91,16 +97,23 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
             .fillMaxWidth()
             .onFocusChanged {
                 focusState = it.isFocused
-                tfValue = tfValue.copy(selection = TextRange(0, tfValue.text.length))
+                if (it.isFocused) {
+                    Log.e(TAG, "3WebviewAddressBar: @@@@@@@@@@@@@@@: ${tfValue.selection}")
+                    tfValue = tfValue.copy(
+                        selection = TextRange(0, tfValue.text.length)
+                    )
+                    Log.e(TAG, "4WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
+                }
             },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
             unfocusedIndicatorColor = Color.Transparent
         ),
-        value = tfValue,
+        value = tfValue.text,
         onValueChange = {
-            onAddressChange(it.text)
-            tfValue = tfValue.copy(text = url)
+            onAddressChange(it)
+            tfValue = tfValue.copy(text = it, TextRange(it.length))
+            Log.e(TAG, "5WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
@@ -119,10 +132,12 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
                     modifier = Modifier
                         .clickable {
                             onAddressChange("")
-                        })
+                        }
+                )
             }
         }
     )
+    Log.e(TAG, "6WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
 }
 
 @Composable

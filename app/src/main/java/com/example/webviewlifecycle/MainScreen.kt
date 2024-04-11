@@ -1,6 +1,7 @@
 package com.example.webviewlifecycle
 
 import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -136,6 +137,9 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
             .fillMaxWidth()
             .onFocusChanged {
                 focusState = it.isFocused
+                if (it.isFocused) {
+                    Log.e(TAG, "WebviewAddressBar focused: $tfValue")
+                }
             }
     )
 }

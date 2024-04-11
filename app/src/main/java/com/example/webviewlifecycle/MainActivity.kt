@@ -3,12 +3,17 @@ package com.example.webviewlifecycle
 import android.Manifest.permission.ACCESS_BACKGROUND_LOCATION
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
+import android.app.DownloadManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
+import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
+import android.webkit.URLUtil
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.widget.Toast
@@ -20,6 +25,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import com.example.webviewlifecycle.databinding.MainActivityBinding
 import kotlinx.coroutines.launch
+
 
 private const val TAG = "MainActivity"
 
@@ -161,6 +167,60 @@ class MainActivity : ComponentActivity() {
                 // 실행하는 것
                 evaluateJavascript("test script", null)
             }
+                .setDownloadListener { url, userAgent, contentDisposition, mimetype, contentLength ->
+                    val request = DownloadManager.Request(Uri.parse(url))
+                    request.setMimeType(mimetype)
+                    request.addRequestHeader("cookie", CookieManager.getInstance().getCookie(url))
+                    request.addRequestHeader("User-Agent", userAgent)
+                    request.setDescription("Downloading file...")
+
+                    var fileName = contentDisposition
+                    Log.e(
+                        TAG,
+                        "DownloadManager: url: $url \n\nmime:$mimetype\n\ncontenDis: $contentDisposition"
+                    )
+
+                    val pattern = """filename="([^"]+\.\w+)";""".toRegex()
+
+                    val matchResult = pattern.find(contentDisposition)
+                    val fileNameWithExtension = matchResult?.groups?.get(1)?.value
+                    if (fileNameWithExtension != null) {
+                        request.setTitle(fileNameWithExtension)
+                        request.setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS,
+                            fileNameWithExtension
+                        )
+                        Log.e(TAG, "fileNameWithExtension: $fileNameWithExtension")
+                    } else {
+
+                        var fileName = contentDisposition.replace("attachment; filename=", "")
+                        if (fileName.isNotEmpty()) {
+                            val idxFileName = fileName.indexOf("filename =")
+                            if (idxFileName > -1) {
+                                fileName = fileName.substring(idxFileName + 9).trim { it <= ' ' }
+                            }
+                            if (fileName.endsWith(";")) {
+                                fileName = fileName.substring(0, fileName.length - 1)
+                            }
+                            if (fileName.startsWith("\"") && fileName.startsWith("\"")) {
+                                fileName = fileName.substring(1, fileName.length - 1)
+                            }
+                        }
+                        request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype))
+                        request.setDestinationInExternalPublicDir(
+                            Environment.DIRECTORY_DOWNLOADS,
+                            fileName
+                        )
+                    }
+
+
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
+
+
+                    val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+                    dm.enqueue(request)
+                    Toast.makeText(applicationContext, "Downloading File", Toast.LENGTH_LONG).show()
+                }
         }
     }
 

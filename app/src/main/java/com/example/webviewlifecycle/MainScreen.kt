@@ -1,11 +1,12 @@
 package com.example.webviewlifecycle
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +27,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,39 +83,22 @@ fun WebviewTopBar(
 fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
     var focusState by remember { mutableStateOf(false) }
     // TODO: 바꿔보기 - remember를 왜 쓰는지 생각해보기
-    var tfValue by remember {
-        mutableStateOf(TextFieldValue(url))
-    }
+    var tfValue by remember { mutableStateOf(TextFieldValue(url)) }
 
-    Log.e(TAG, "1WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
-    tfValue = tfValue.copy(text = url, selection = tfValue.selection)
-    Log.e(TAG, "2WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
+    tfValue = tfValue.copy(text = url)
 
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
 
     TextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .onFocusChanged {
-                focusState = it.isFocused
-                if (it.isFocused) {
-                    Log.e(TAG, "3WebviewAddressBar: @@@@@@@@@@@@@@@: ${tfValue.selection}")
-                    tfValue = tfValue.copy(
-                        selection = TextRange(0, tfValue.text.length)
-                    )
-                    Log.e(TAG, "4WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
-                }
-            },
         shape = RoundedCornerShape(8.dp),
         colors = TextFieldDefaults.colors(
             unfocusedIndicatorColor = Color.Transparent
         ),
-        value = tfValue.text,
+        value = tfValue,
         onValueChange = {
-            onAddressChange(it)
-            tfValue = tfValue.copy(text = it, TextRange(it.length))
-            Log.e(TAG, "5WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
+            onAddressChange(it.text)
+            tfValue = it
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
@@ -135,9 +120,24 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
                         }
                 )
             }
-        }
+        },
+        interactionSource = remember { MutableInteractionSource() }
+            .also { interactionSource ->
+                LaunchedEffect(interactionSource) {
+                    interactionSource.interactions.collect {
+                        if (it is PressInteraction.Release) {
+                            // works like onClick
+                            tfValue = tfValue.copy(selection = TextRange(0, tfValue.text.length))
+                        }
+                    }
+                }
+            },
+        modifier = Modifier
+            .fillMaxWidth()
+            .onFocusChanged {
+                focusState = it.isFocused
+            }
     )
-    Log.e(TAG, "6WebviewAddressBar: @@@@@@@@@@@: ${tfValue.selection}")
 }
 
 @Composable

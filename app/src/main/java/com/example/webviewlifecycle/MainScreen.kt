@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -71,21 +72,28 @@ fun WebviewTopBar(
                 .size(50.dp),
             contentDescription = "",
         )
-        WebviewAddressBar(onAddressChange = onAddressChange, onLoadUrl = onLoadUrl, url = url)
+        WebviewAddressBar(
+            onAddressChange = onAddressChange,
+            onLoadUrl = onLoadUrl,
+            url = url,
+        )
     }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, url: String) {
+fun WebviewAddressBar(
+    onAddressChange: (String) -> Unit,
+    onLoadUrl: () -> Unit,
+    url: String,
+) {
+    var keepWholeSelection by remember { mutableStateOf(false) }
+
     var focusState by remember { mutableStateOf(false) }
-    // TODO: 바꿔보기 - remember를 왜 쓰는지 생각해보기
-    var tfValue by remember { mutableStateOf(TextFieldValue(url)) }
-
-    tfValue = tfValue.copy(text = url)
-
+    var tfValue by remember(url) { mutableStateOf(TextFieldValue(url)) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    Log.e(TAG, "WebviewAddressBar: url: $url, tfValue: $tfValue")
 
     TextField(
         shape = RoundedCornerShape(8.dp),
@@ -93,13 +101,18 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
             unfocusedIndicatorColor = Color.Transparent
         ),
         value = tfValue,
-        onValueChange = {
-            onAddressChange(it.text)
-            tfValue = it
+        onValueChange = { newValue ->
+            if (keepWholeSelection) {
+                keepWholeSelection = false
+                tfValue = newValue.copy(selection = TextRange(0, newValue.text.length))
+            } else {
+                tfValue = newValue
+            }
         },
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {
+                onAddressChange(tfValue.text)
                 onLoadUrl()
                 keyboardController?.hide()
                 focusManager.clearFocus()
@@ -113,7 +126,7 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
                     imageVector = Icons.Default.Clear, "",
                     modifier = Modifier
                         .clickable {
-                            onAddressChange("")
+                            tfValue = tfValue.copy(text = "")
                         }
                 )
             }
@@ -123,7 +136,8 @@ fun WebviewAddressBar(onAddressChange: (String) -> Unit, onLoadUrl: () -> Unit, 
             .onFocusChanged {
                 focusState = it.isFocused
                 if (it.isFocused) {
-                    Log.e(TAG, "WebviewAddressBar focused: $tfValue")
+                    tfValue = tfValue.copy(selection = TextRange(0, tfValue.text.length))
+                    keepWholeSelection = true
                 }
             }
     )

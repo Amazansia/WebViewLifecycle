@@ -13,7 +13,6 @@ private const val TAG = "MainActivityViewModel"
 
 class MainActivityViewModel : ViewModel() {
 
-    //TODO: 화면 회전시 하얀화면으로 변경됨...
     private val _navEvent = MutableSharedFlow<NavEvent>()
     val navEvent = _navEvent.asSharedFlow()
 

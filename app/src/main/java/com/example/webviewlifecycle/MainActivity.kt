@@ -50,7 +50,11 @@ class MainActivity : ComponentActivity() {
                         viewModel.uiAction.invoke(WebViewUiAction.LoadUrl)
                     },
                     url = viewModel.url.collectAsStateWithLifecycle().value,
-                    favicon = viewModel.favicon.collectAsStateWithLifecycle().value
+                    favicon = viewModel.favicon.collectAsStateWithLifecycle().value,
+//                    clientState = viewModel.clientState.collectAsStateWithLifecycle().value,
+//                    onUpdateComplete = {
+//                        iewModel.updateClientState(ClientState.WebSchemeUpdateComplete)
+//                    }
                 )
             }
             setContentView(it.root)

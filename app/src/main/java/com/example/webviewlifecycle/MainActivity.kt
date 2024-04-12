@@ -174,48 +174,39 @@ class MainActivity : ComponentActivity() {
                     request.addRequestHeader("User-Agent", userAgent)
                     request.setDescription("Downloading file...")
 
-                    var fileName = contentDisposition
-                    Log.e(
-                        TAG,
-                        "DownloadManager: url: $url \n\nmime:$mimetype\n\ncontenDis: $contentDisposition"
-                    )
-
+                    // contentDisposition에 파일명 정보가 있을 때는 아래 널체크가 생략됨
                     val pattern = """filename="([^"]+\.\w+)";""".toRegex()
-
                     val matchResult = pattern.find(contentDisposition)
-                    val fileNameWithExtension = matchResult?.groups?.get(1)?.value
-                    if (fileNameWithExtension != null) {
-                        request.setTitle(fileNameWithExtension)
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS,
-                            fileNameWithExtension
-                        )
-                        Log.e(TAG, "fileNameWithExtension: $fileNameWithExtension")
-                    } else {
-
-                        var fileName = contentDisposition.replace("attachment; filename=", "")
-                        if (fileName.isNotEmpty()) {
-                            val idxFileName = fileName.indexOf("filename =")
+                    var fileNameWithExtension = matchResult?.groups?.get(1)?.value
+                    if (fileNameWithExtension == null) {
+                        // url에 파일명 정보가 있을 때
+                        fileNameWithExtension = contentDisposition.replace("attachment; filename=", "")
+                        if (fileNameWithExtension.isNotEmpty()) {
+                            val idxFileName = fileNameWithExtension.indexOf("filename=")
                             if (idxFileName > -1) {
-                                fileName = fileName.substring(idxFileName + 9).trim { it <= ' ' }
+                                fileNameWithExtension =
+                                    fileNameWithExtension.substring(idxFileName + 9).trim { it <= ' ' }
                             }
-                            if (fileName.endsWith(";")) {
-                                fileName = fileName.substring(0, fileName.length - 1)
+                            if (fileNameWithExtension.endsWith(";")) {
+                                fileNameWithExtension =
+                                    fileNameWithExtension.substring(0, fileNameWithExtension.length - 1)
                             }
-                            if (fileName.startsWith("\"") && fileName.startsWith("\"")) {
-                                fileName = fileName.substring(1, fileName.length - 1)
+                            if (fileNameWithExtension.startsWith("\"") && fileNameWithExtension.startsWith("\"")) {
+                                fileNameWithExtension =
+                                    fileNameWithExtension.substring(1, fileNameWithExtension.length - 1)
                             }
+                        } else {
+                            // 정말 알수없음
+                            fileNameWithExtension = URLUtil.guessFileName(url, contentDisposition, mimetype)
                         }
-                        request.setTitle(URLUtil.guessFileName(url, contentDisposition, mimetype))
-                        request.setDestinationInExternalPublicDir(
-                            Environment.DIRECTORY_DOWNLOADS,
-                            fileName
-                        )
                     }
 
-
+                    request.setTitle(fileNameWithExtension)
+                    request.setDestinationInExternalPublicDir(
+                        Environment.DIRECTORY_DOWNLOADS,
+                        fileNameWithExtension
+                    )
                     request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-
 
                     val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                     dm.enqueue(request)

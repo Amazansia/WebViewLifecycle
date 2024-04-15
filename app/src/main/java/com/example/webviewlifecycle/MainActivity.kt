@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import android.webkit.CookieManager
+import android.webkit.GeolocationPermissions
 import android.webkit.JavascriptInterface
 import android.webkit.URLUtil
 import android.webkit.WebSettings
@@ -34,7 +35,6 @@ class MainActivity : ComponentActivity() {
     private val viewModel by viewModels<MainActivityViewModel>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        requestLocationPermission()
 
         binding = MainActivityBinding.inflate(layoutInflater).also {
             it.progressBar.setContent {
@@ -51,10 +51,6 @@ class MainActivity : ComponentActivity() {
                     },
                     url = viewModel.url.collectAsStateWithLifecycle().value,
                     favicon = viewModel.favicon.collectAsStateWithLifecycle().value,
-//                    clientState = viewModel.clientState.collectAsStateWithLifecycle().value,
-//                    onUpdateComplete = {
-//                        iewModel.updateClientState(ClientState.WebSchemeUpdateComplete)
-//                    }
                 )
             }
             setContentView(it.root)
@@ -97,8 +93,7 @@ class MainActivity : ComponentActivity() {
         viewModel.uiAction.invoke(action)
     }
 
-    // TODO: 리퀘스트가 들어오면 요구하는 방식으로 변경
-    private fun requestLocationPermission() {
+    private fun requestLocationPermission(): Boolean {
         if (checkSelfPermission(
                 this,
                 ACCESS_COARSE_LOCATION
@@ -120,6 +115,16 @@ class MainActivity : ComponentActivity() {
                 1
             )
         }
+        return checkSelfPermission(
+            applicationContext,
+            ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED || checkSelfPermission(
+            applicationContext,
+            ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED || checkSelfPermission(
+            applicationContext,
+            ACCESS_BACKGROUND_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun initView() {
@@ -147,6 +152,15 @@ class MainActivity : ComponentActivity() {
                             viewModel.faviconReceived.invoke(it)
                         }
                         super.onReceivedIcon(view, icon)
+                    }
+
+                    override fun onGeolocationPermissionsShowPrompt(
+                        origin: String?,
+                        callback: GeolocationPermissions.Callback?,
+                    ) {
+                        Log.d(TAG, "onGeolocationPermissionsShowPrompt: $origin")
+                        super.onGeolocationPermissionsShowPrompt(origin, callback)
+                        callback?.invoke(origin, requestLocationPermission(), false)
                     }
                 }
                 // settings
@@ -214,7 +228,11 @@ class MainActivity : ComponentActivity() {
 
                     val dm = getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
                     dm.enqueue(request)
-                    Toast.makeText(applicationContext, "Downloading File", Toast.LENGTH_LONG).show()
+                    Toast.makeText(
+                        applicationContext,
+                        "Download File: $fileNameWithExtension",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
         }
     }
@@ -234,5 +252,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-

@@ -16,7 +16,7 @@ class MainActivityViewModel : ViewModel() {
     private val _navEvent = MutableSharedFlow<NavEvent>()
     val navEvent = _navEvent.asSharedFlow()
 
-    private val _url = MutableStateFlow("https://www.naver.com/")
+    private val _url = MutableStateFlow("https://map.kakao.com/")
     val url: StateFlow<String> = _url
 
     private val _progress = MutableStateFlow(0)

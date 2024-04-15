@@ -1,7 +1,6 @@
 package com.example.webviewlifecycle
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -93,7 +92,6 @@ fun WebviewAddressBar(
     var tfValue by remember(url) { mutableStateOf(TextFieldValue(url)) }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    Log.e(TAG, "WebviewAddressBar: url: $url, tfValue: $tfValue")
 
     TextField(
         shape = RoundedCornerShape(8.dp),

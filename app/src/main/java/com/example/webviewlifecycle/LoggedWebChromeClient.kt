@@ -91,7 +91,6 @@ open class LoggedWebChromeClient : WebChromeClient() {
         callback: GeolocationPermissions.Callback?,
     ) {
         Log.d(TAG, "onGeolocationPermissionsShowPrompt: $origin")
-
         callback?.invoke(origin, true, false)
         super.onGeolocationPermissionsShowPrompt(origin, callback)
     }
